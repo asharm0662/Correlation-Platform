@@ -1,0 +1,305 @@
+{% extends 'dashboard/base.html' %}
+<!-- page content -->
+{% block page %}
+<div class="right_col" role="main">
+    <div class="">
+        <div class="page-title">
+            <div class="title_left">
+                <h3>Dashboard</h3>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>Data analysis</h2>
+                        <ul class="nav navbar-right panel_toolbox">
+                            <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+                            <li><a class="close-link"><i class="fa fa-close"></i></a></li>
+                        </ul>
+                        <div class="clearfix"></div>
+                    </div>
+                    {% if error %}
+                    <div class="col-md-12 col-sm-12 col-xs-12">
+                        <div class="alert alert-danger" role="alert">{{ error }}</div>
+                    </div>
+                    {% endif %}
+                    <div class="x_content">
+                        <br/>
+                        <form id="post-form" data-parsley-validate class="form-horizontal form-label-left"
+                              action="{% url 'dashboard:index' %}" method="post">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first_currency">Exchange
+                                    rate</label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <select class="form-control" name="first_currency" id="first_currency">
+                                        <option>Choose option</option>
+                                        {% for option in currency_list %}
+                                        <option>{{ option }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-3 col-sm-3 col-xs-12"></div>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <select class="form-control" name="second_currency" id="second_currency">
+                                        <option>Choose option</option>
+                                        {% for option in currency_list %}
+                                        <option>{{ option }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="index_rate">Index
+                                    rate</label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <select class="form-control" name="index_rate" id="index_rate">
+                                        <option>Choose option</option>
+                                        {% for option in data_sources %}
+                                        <option>{{ option.human_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12"
+                                       for="date_input">Date</label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <div class="input-prepend input-group">
+                                        <span class="add-on input-group-addon"><i
+                                                class="glyphicon glyphicon-calendar fa fa-calendar"></i></span>
+                                        <input type="text" style="width: 200px" name="date_input"
+                                               id="date_input" class="form-control"
+                                               value=""/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">Functions</label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" class="flat" id="correlation" name="correlation"
+                                                   value="correlation"> Correlation
+                                        </label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" class="flat" id="deviation" name="deviation"
+                                                   value="deviation"> Deviation
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ln_solid"></div>
+                            <div class="form-group">
+                                <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3">
+                                    <button type="submit" class="btn btn-primary" id="cancel" name="analyze"
+                                            value="cancel">Cancel
+                                    </button>
+                                    <button type="submit" class="btn btn-success" id="submit" name="analyze"
+                                            value="submit">Submit
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% if data %}
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>Data</h2>
+                        <ul class="nav navbar-right panel_toolbox">
+                            <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                            </li>
+                            <li><a class="close-link"><i class="fa fa-close"></i></a>
+                            </li>
+                        </ul>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <table id="datatable-data" class="table table-striped table-bordered">
+                            <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>{{ exchange_rate }}</th>
+                                <th>{{ index_rate }}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for row in data %}
+                            <tr>
+                                <td>{{ row.date }}</td>
+                                <td>{{ row.exchange_rate }}</td>
+                                <td>{{ row.index_rate }}</td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% if solution %}
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>Solution</h2>
+                        <ul class="nav navbar-right panel_toolbox">
+                            <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                            </li>
+                            <li><a class="close-link"><i class="fa fa-close"></i></a>
+                            </li>
+                        </ul>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <table id="datatable-solution" class="table table-striped table-bordered">
+                            <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Exchange rate</th>
+                                {% if solution.deviation_exchange_rate %}
+                                <th>Deviation</th>
+                                {% endif %}
+                                <th>Index rate</th>
+                                {% if solution.deviation_index_rate %}
+                                <th>Deviation</th>
+                                {% endif %}
+                                {% if solution.correlation %}
+                                <th>Correlation</th>
+                                {% endif %}
+                                <th>Sentiment score</th>
+                                {% if solution.deviation_sentiment_score %}
+                                <th>Deviation</th>
+                                {% endif %}
+                                {% if solution.correlation_with_sentiment %}
+                                <th>Correlation with sentiment score</th>
+                                {% endif %}
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>{{ solution.date_input }}</td>
+                                <td>{{ exchange_rate }}</td>
+                                {% if solution.deviation_exchange_rate %}
+                                <td>{{ solution.deviation_exchange_rate }}</td>
+                                {% endif %}
+                                <td>{{ index_rate }}</td>
+                                {% if solution.deviation_index_rate %}
+                                <td>{{ solution.deviation_index_rate }}</td>
+                                {% endif %}
+                                {% if solution.correlation %}
+                                <td>{{ solution.correlation }}</td>
+                                {% endif %}
+                                {% if solution.sentiment_score %}
+                                <td>{{ solution.sentiment_score }}</td>
+                                {% endif %}
+                                {% if solution.deviation_sentiment_score %}
+                                <td>{{ solution.deviation_sentiment_score }}</td>
+                                {% endif %}
+                                {% if solution.correlation_with_sentiment %}
+                                <td>{{ solution.correlation_with_sentiment }}</td>
+                                {% endif %}
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% if data %}
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>Line graph</h2>
+                        <ul class="nav navbar-right panel_toolbox">
+                            <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                            </li>
+                            <li><a class="close-link"><i class="fa fa-close"></i></a>
+                            </li>
+                        </ul>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+<!-- /page content -->
+{% block script %}
+<script>
+    $(document).ready(function() {
+        $("#datatable-data").DataTable({
+          dom: "Bfrtip",
+          buttons: [
+            {
+              extend: "csv",
+              className: "btn-sm"
+            },
+          ],
+          responsive: true
+        });
+        $("#datatable-solution").DataTable({
+          dom: "Bfrtip",
+          buttons: [
+            {
+              extend: "csv",
+              className: "btn-sm"
+            },
+          ],
+          responsive: true
+        });
+    } );
+</script>
+<!-- Chart.js -->
+<script>
+      {% autoescape off %}
+      Chart.defaults.global.legend = {
+        enabled: false
+      };
+
+      // Line chart
+      var ctx = document.getElementById("lineChart");
+      var lineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: {{ chart.date_vector}},
+          datasets: [{
+            label: "{{ exchange_rate }}",
+            backgroundColor: "rgba(38, 185, 154, 0.31)",
+            borderColor: "rgba(38, 185, 154, 0.7)",
+            pointBorderColor: "rgba(38, 185, 154, 0.7)",
+            pointBackgroundColor: "rgba(38, 185, 154, 0.7)",
+            pointHoverBackgroundColor: "#fff",
+            pointHoverBorderColor: "rgba(220,220,220,1)",
+            pointBorderWidth: 1,
+            data: {{ chart.data_vector_exchange_rate }}
+          }, {
+            label: "{{ index_rate }}",
+            backgroundColor: "rgba(3, 88, 106, 0.3)",
+            borderColor: "rgba(3, 88, 106, 0.70)",
+            pointBorderColor: "rgba(3, 88, 106, 0.70)",
+            pointBackgroundColor: "rgba(3, 88, 106, 0.70)",
+            pointHoverBackgroundColor: "#fff",
+            pointHoverBorderColor: "rgba(151,187,205,1)",
+            pointBorderWidth: 1,
+            data: {{ chart.data_vector_index_rate }}
+          }]
+        },
+      });
+      {% endautoescape %}
+</script>
+<!-- /Chart.js -->
+{% endblock %}
